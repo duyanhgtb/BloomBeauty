@@ -1,0 +1,697 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hồ Sơ Cá Nhân | BLOOM BEAUTY</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+      (function() {
+          const savedTheme = localStorage.getItem('theme') || 'light';
+          document.documentElement.setAttribute('data-theme', savedTheme);
+      })();
+  </script>
+  <style>
+    body { background: var(--bg-light); color: var(--text-dark); }
+    .profile-container {
+      max-width: 1200px;
+      margin: 8rem auto 4rem;
+      padding: 0 5%;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 2rem;
+    }
+    .profile-sidebar {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      height: fit-content;
+      text-align: center;
+      border: 1px solid var(--border-light);
+    }
+    .profile-avatar {
+      width: 90px; height: 90px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-size: 2.5rem;
+      line-height: 90px;
+      margin: 0 auto 1rem;
+      font-weight: bold;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .profile-name {
+      color: var(--secondary);
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 0.2rem;
+    }
+    .profile-menu {
+      list-style: none;
+      margin-top: 2rem;
+      text-align: left;
+    }
+    .profile-menu li {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border-light);
+      cursor: pointer;
+      color: var(--text-dark);
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .profile-menu li.active, .profile-menu li:hover {
+      color: var(--primary);
+      font-weight: bold;
+      border-color: var(--primary);
+    }
+    .profile-content {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-light);
+    }
+    .profile-title {
+      color: var(--secondary);
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--border-light);
+      padding-bottom: 1rem;
+      font-family: 'Montserrat', sans-serif;
+    }
+    
+    .order-card {
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      background: var(--white);
+      color: var(--text-dark);
+    }
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed var(--border-light);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .order-id { font-weight: bold; color: var(--secondary); font-size: 1.1rem;}
+    .order-date { color: var(--text-light); font-size: 0.9rem; }
+    
+    .tracking-wrapper {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      margin-bottom: 2rem;
+      padding: 0 20px;
+    }
+    .tracking-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 15px; left: 60px; right: 60px;
+      height: 3px;
+      background: var(--border-light);
+      z-index: 1;
+    }
+    .track-step {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      flex: 1;
+    }
+    .track-icon {
+      width: 35px; height: 35px;
+      background: var(--bg-gray);
+      color: var(--text-light);
+      border-radius: 50%;
+      margin: 0 auto 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      border: 3px solid var(--white);
+      transition: var(--transition);
+    }
+    .track-step.active .track-icon {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 0 0 4px rgba(255, 74, 125, 0.2);
+    }
+    .track-text {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      font-weight: 600;
+    }
+    .track-step.active .track-text { color: var(--primary-dark); }
+    
+    .order-items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+      background: var(--bg-gray);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px dashed var(--border-light);
+    }
+    .o-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 5px;
+    }
+    .o-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-light); }
+    .o-item-name { flex: 1; font-weight: 600; font-size: 0.95rem; color: var(--text-dark); }
+    .o-item-qty { color: var(--text-light); font-size: 0.9rem; }
+    .o-item-price { color: var(--primary); font-weight: bold; }
+    
+    .order-footer {
+      text-align: right;
+      font-size: 1.1rem;
+      color: var(--text-dark);
+      border-top: 1px solid var(--border-light);
+      padding-top: 1rem;
+    }
+    .order-footer span { font-weight: bold; color: var(--primary); font-size: 1.4rem; margin-left: 10px; }
+
+    .btn-logout {
+      margin-top: 2rem;
+      width: 100%;
+      padding: 12px;
+      background: none;
+      border: 2px solid #e74c3c;
+      color: #e74c3c;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: var(--transition);
+    }
+    .btn-logout:hover {
+      background: #e74c3c;
+      color: white;
+    }
+    
+    .empty-orders { text-align: center; color: var(--text-light); padding: 4rem 0; font-size: 1.1rem; }
+    
+    @media (max-width: 768px) {
+      .profile-container { grid-template-columns: 1fr; margin-top: 6rem;}
+      .tracking-wrapper::before { display: none; }
+      .tracking-wrapper { flex-direction: column; gap: 20px; align-items: flex-start; }
+      .track-step { display: flex; align-items: center; gap: 15px; text-align: left; width: 100%; }
+      .track-icon { margin: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-loader" id="page-loader">
+      <div class="loader-spinner"></div>
+      <div class="loader-logo">BLOOM BEAUTY</div>
+  </div>
+  <div class="top-bar">
+      Freeship 15K mọi đơn hàng <span>·</span> Mua là có quà <span>·</span> Mua online nhận tại cửa hàng gần nhất
+  </div>
+  <nav class="navbar">
+      <a href="index.html" class="logo">Bloom Beauty</a>
+      
+      <div class="search-container">
+          <span class="material-icons search-icon-left">search</span>
+          <input type="text" class="search-input" placeholder="Freshian đồng giá 299k...">
+          <span class="material-icons search-icon-right">photo_camera</span>
+      </div>
+      
+      <div class="header-utilities">
+          <div class="utility-link" onclick="window.location.href='index.html#store'">
+              <span class="material-icons">storefront</span>
+              <span>Hệ thống cửa hàng</span>
+          </div>
+          <div class="utility-link" onclick="window.location.href='index.html#magazine'">
+              <span class="material-icons">edit_note</span>
+              <span>Tạp chí làm đẹp</span>
+          </div>
+          <div class="utility-link">
+              <span class="material-icons">more_horiz</span>
+          </div>
+          
+          <div class="utility-link" onclick="toggleTheme()" id="theme-toggle-btn" style="padding: 4px;" title="Chuyển chế độ Sáng/Tối">
+              <span class="material-icons" id="theme-toggle-icon">dark_mode</span>
+          </div>
+
+          <a href="login.html" class="utility-link">
+              <span class="material-icons" id="auth-icon">person_outline</span>
+              <span id="auth-text">Đăng nhập</span>
+          </a>
+          
+          <div class="utility-link" style="position: relative;">
+              <span class="material-icons">favorite_border</span>
+          </div>
+          
+          <div class="utility-link" id="cart-icon" style="position: relative;">
+              <span class="material-icons">shopping_bag</span>
+              <div class="cart-count" id="cart-badge">0</div>
+          </div>
+      </div>
+  </nav>
+
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <div class="cart-drawer" id="cart-drawer">
+    <div class="cart-header">
+      <h3>Giỏ Hàng Của Bạn</h3>
+      <span class="material-icons close-cart" id="close-cart">close</span>
+    </div>
+    <div class="cart-items" id="cart-items-container">
+      <div class="cart-empty">Giỏ hàng đang trống.</div>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total">
+        <span>Tổng Thành Tiền:</span>
+        <span id="cart-total-price">0 ₫</span>
+      </div>
+      <button class="checkout-btn" onclick="window.location.href='checkout.html'">Thanh Toán Ngay</button>
+    </div>
+  </div>
+
+  <div class="profile-container">
+    <div class="profile-sidebar">
+      <div class="profile-avatar" id="user-avatar">?</div>
+      <div class="profile-name" id="user-name">Đang tải...</div>
+      <div id="user-email" style="color: #888; font-size: 0.9rem; margin-bottom: 2rem;"></div>
+      
+      <ul class="profile-menu">
+        <li class="active" data-tab="orders"><i class="fas fa-shopping-bag"></i> Lịch Sử Mua Hàng</li>
+        <li data-tab="info"><i class="fas fa-user-cog"></i> Thông Tin Cá Nhân</li>
+        <li data-tab="addresses"><i class="fas fa-map-marker-alt"></i> Sổ Địa Chỉ</li>
+      </ul>
+      
+      <button class="btn-logout" id="logout-btn">Đăng Xuất</button>
+    </div>
+
+    <div class="profile-content">
+      <div id="tab-orders" class="tab-pane">
+        <h2 class="profile-title">Lịch Sử Mua Hàng</h2>
+        <div id="orders-container">
+        </div>
+      </div>
+      <div id="tab-info" class="tab-pane" style="display: none;">
+        <h2 class="profile-title">Thông Tin Cá Nhân</h2>
+        <form id="profile-info-form" style="max-width: 500px;">
+          <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label style="display:block; margin-bottom:8px; font-weight:600; font-size:0.9rem;">Họ và Tên</label>
+            <input type="text" id="info-name" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:6px; font-family:inherit;" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 1.5rem;">
+            <label style="display:block; margin-bottom:8px; font-weight:600; font-size:0.9rem; color:#888;">Email đăng nhập</label>
+            <input type="email" id="info-email" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:6px; font-family:inherit; background:#f5f5f5;" readonly>
+          </div>
+          <div class="form-group" style="margin-bottom: 2rem;">
+            <label style="display:block; margin-bottom:8px; font-weight:600; font-size:0.9rem; color:#888;">Ngày tham gia</label>
+            <input type="text" id="info-joined" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:6px; font-family:inherit; background:#f5f5f5;" readonly>
+          </div>
+          <button type="submit" class="btn" style="border-radius:6px; padding: 12px 25px;">Lưu Thay Đổi</button>
+        </form>
+      </div>
+      <div id="tab-addresses" class="tab-pane" style="display: none;">
+        <h2 class="profile-title">Sổ Địa Chỉ Giao Hàng</h2>
+        <div id="address-list-container" style="margin-bottom: 2rem;">
+        </div>
+        
+        <form id="add-address-form" style="max-width: 500px; background: #fafafa; padding: 20px; border-radius: 8px; border: 1px solid #eee;">
+          <h3 style="margin-top:0; margin-bottom: 1rem; font-size:1.1rem; color:var(--secondary);">Thêm Địa Chỉ Mới</h3>
+          <div class="form-group" style="margin-bottom: 1.2rem;">
+            <input type="text" id="new-address-input" placeholder="Nhập địa chỉ giao hàng đầy đủ của bạn" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:6px; font-family:inherit;" required>
+          </div>
+          <button type="submit" class="btn btn-outline" style="border-radius:6px; padding: 10px 20px; font-size: 0.75rem; border-color: var(--secondary); color: var(--secondary);">Lưu Địa Chỉ</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <footer>
+    <div class="footer-col">
+      <a href="index.html" class="logo">Bloom Beauty</a>
+      <p>Nhà phân phối chính hãng độc quyền của hơn 80 brand làm đẹp hàng đầu thế giới. Nâng tầm khí chất trẻ trung của bạn.</p>
+      <div class="social-links">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Đường Dẫn</h4>
+      <a href="index.html#home">Trang Chủ</a>
+      <a href="index.html#about">Về Chúng Tôi</a>
+      <a href="index.html#products">Sản Phẩm</a>
+    </div>
+    <div class="footer-col">
+      <h4>Chính Sách</h4>
+      <a href="privacy-policy.html">Bảo Mật Thông Tin</a>
+      <a href="payment-policy.html">Chấp Nhận Thanh Toán</a>
+      <a href="return-policy.html">Gửi Trả Hàng</a>
+    </div>
+    <div class="footer-col">
+      <h4>Liên Hệ</h4>
+      <p><i class="fas fa-envelope"></i> info@thebeauty.vn</p>
+      <p><i class="fas fa-phone"></i> 0888300368</p>
+      <p><i class="fas fa-map-marker-alt"></i> 12 Chùa Bộc, Đống Đa, TP.HN</p>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 BLOOM BEAUTY Cosmetic. Bản quyền thuộc về Thế Giới Mỹ Phẩm Trendy.</p>
+    </div>
+  </footer>
+
+      <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!localStorage.getItem('isLoggedIn') || localStorage.getItem('isLoggedIn') !== 'true') {
+        window.location.href = 'login.html';
+        return;
+      }
+      
+      let usersDB = JSON.parse(localStorage.getItem('usersDatabase')) || [];
+      let loggedInEmail = localStorage.getItem('loggedInEmail');
+      let currentUser = usersDB.find(u => u.email === loggedInEmail);
+      
+      if (localStorage.getItem('isAdmin') === 'true') {
+        document.getElementById('user-name').textContent = 'Quản Trị Viên';
+        document.getElementById('user-email').textContent = 'admin@thebeauty.vn';
+        document.getElementById('user-avatar').textContent = 'A';
+        const menu = document.querySelector('.profile-menu');
+        if (menu) {
+            const adminLi = document.createElement('li');
+            adminLi.style.color = '#e02d60';
+            adminLi.style.fontWeight = 'bold';
+            adminLi.innerHTML = '<i class="fas fa-tools"></i> Trang Quản Trị (Admin)';
+            adminLi.onclick = () => window.location.href = 'admin.html';
+            menu.insertBefore(adminLi, menu.firstChild);
+        }
+      } else if (currentUser) {
+        document.getElementById('user-name').textContent = currentUser.name;
+        document.getElementById('user-email').textContent = currentUser.email;
+        document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+      }
+      let allOrdersDB = JSON.parse(localStorage.getItem('ordersDatabase')) || [];
+      const myOrders = localStorage.getItem('isAdmin') === 'true' 
+          ? allOrdersDB 
+          : allOrdersDB.filter(order => order.userEmail === loggedInEmail);
+          
+      const ordersContainer = document.getElementById('orders-container');
+      
+      if (myOrders.length === 0) {
+        ordersContainer.innerHTML = '<div class="empty-orders"><i class="material-icons" style="font-size:4rem; color:#ddd; margin-bottom:1rem;">inbox</i><p>Chưa có đơn hàng nào.</p></div>';
+      } else {
+        let html = '';
+        [...myOrders].reverse().forEach(order => {
+           html += generateOrderHTML(order);
+        });
+        ordersContainer.innerHTML = html;
+      }
+      const menuItems = document.querySelectorAll('.profile-menu li[data-tab]');
+      const tabPanes = document.querySelectorAll('.tab-pane');
+
+      menuItems.forEach(item => {
+          item.addEventListener('click', () => {
+              menuItems.forEach(mi => mi.classList.remove('active'));
+              tabPanes.forEach(pane => pane.style.display = 'none');
+
+              item.classList.add('active');
+              const targetTab = item.getAttribute('data-tab');
+              const targetPane = document.getElementById(`tab-${targetTab}`);
+              if (targetPane) {
+                  targetPane.style.display = 'block';
+              }
+          });
+      });
+      const infoNameInput = document.getElementById('info-name');
+      const infoEmailInput = document.getElementById('info-email');
+      const infoJoinedInput = document.getElementById('info-joined');
+
+      if (localStorage.getItem('isAdmin') === 'true') {
+          infoNameInput.value = 'Quản Trị Viên';
+          infoEmailInput.value = 'admin@thebeauty.vn';
+          infoJoinedInput.value = 'Hệ thống';
+      } else if (currentUser) {
+          infoNameInput.value = currentUser.name;
+          infoEmailInput.value = currentUser.email;
+          const joinedDate = new Date(currentUser.createdAt);
+          infoJoinedInput.value = joinedDate.toLocaleDateString('vi-VN');
+      }
+      const infoForm = document.getElementById('profile-info-form');
+      if (infoForm) {
+          infoForm.addEventListener('submit', (e) => {
+              e.preventDefault();
+              if (localStorage.getItem('isAdmin') === 'true') {
+                  alert('Không thể chỉnh sửa thông tin tài khoản Quản Trị Viên mặc định!');
+                  return;
+              }
+
+              const newName = infoNameInput.value.trim();
+              if (currentUser && newName) {
+                  currentUser.name = newName;
+                  const userIdx = usersDB.findIndex(u => u.email === loggedInEmail);
+                  if (userIdx > -1) {
+                      usersDB[userIdx].name = newName;
+                      localStorage.setItem('usersDatabase', JSON.stringify(usersDB));
+                  }
+                  document.getElementById('user-name').textContent = newName;
+                  document.getElementById('user-avatar').textContent = newName.charAt(0).toUpperCase();
+                  if (window.authManager) window.authManager.updateUI();
+                  
+                  alert('Cập nhật thông tin cá nhân thành công!');
+              }
+          });
+      }
+      const addressContainer = document.getElementById('address-list-container');
+      const addAddressForm = document.getElementById('add-address-form');
+      const newAddressInput = document.getElementById('new-address-input');
+
+      function renderAddresses() {
+          if (!addressContainer) return;
+          const allAddresses = JSON.parse(localStorage.getItem('addressesDatabase')) || {};
+          const userEmail = localStorage.getItem('loggedInEmail');
+          const userAddresses = allAddresses[userEmail] || [];
+
+          if (userAddresses.length === 0) {
+              addressContainer.innerHTML = '<div style="color:#888; font-style:italic; padding: 10px 0;">Chưa có địa chỉ nào được lưu.</div>';
+              return;
+          }
+
+          addressContainer.innerHTML = userAddresses.map((addr, index) => `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid #eee; border-radius:6px; margin-bottom:10px; background:#fff;">
+                  <span style="font-size:0.88rem; color:#333;"><i class="fas fa-map-marker-alt" style="color:var(--primary); margin-right:8px;"></i> ${addr}</span>
+                  <span class="material-icons" style="color:#aaa; cursor:pointer; font-size:1.15rem;" onclick="removeAddress(${index})">close</span>
+              </div>
+          `).join('');
+      }
+
+      window.removeAddress = function(index) {
+          const allAddresses = JSON.parse(localStorage.getItem('addressesDatabase')) || {};
+          const userEmail = localStorage.getItem('loggedInEmail');
+          const userAddresses = allAddresses[userEmail] || [];
+          
+          userAddresses.splice(index, 1);
+          allAddresses[userEmail] = userAddresses;
+          localStorage.setItem('addressesDatabase', JSON.stringify(allAddresses));
+          renderAddresses();
+      };
+
+      if (addAddressForm) {
+          addAddressForm.addEventListener('submit', (e) => {
+              e.preventDefault();
+              const newAddr = newAddressInput.value.trim();
+              if (newAddr) {
+                  const allAddresses = JSON.parse(localStorage.getItem('addressesDatabase')) || {};
+                  const userEmail = localStorage.getItem('loggedInEmail');
+                  const userAddresses = allAddresses[userEmail] || [];
+                  
+                  userAddresses.push(newAddr);
+                  allAddresses[userEmail] = userAddresses;
+                  localStorage.setItem('addressesDatabase', JSON.stringify(allAddresses));
+                  
+                  newAddressInput.value = '';
+                  renderAddresses();
+                  alert('Lưu địa chỉ mới thành công!');
+              }
+          });
+      }
+
+      renderAddresses();
+
+      document.getElementById('logout-btn').addEventListener('click', () => {
+        window.authManager.logout();
+      });
+    });
+
+    function generateOrderHTML(order) {
+      let itemsHTML = '';
+      order.items.forEach(item => {
+          itemsHTML += `
+            <div class="o-item">
+              <img src="${item.img}" alt="${item.title}">
+              <div class="o-item-name">${item.title}</div>
+              <div class="o-item-qty">x${item.quantity}</div>
+              <div class="o-item-price">${new Intl.NumberFormat('vi-VN').format(item.price * item.quantity)} ₫</div>
+            </div>`;
+      });
+
+      if (order.status === 'cancelled') {
+        return `
+        <div class="order-card" style="border-color: #f5c6cb; background-color: #fdf3f4;">
+          <div class="order-header">
+            <div><span class="order-id">Mã Đơn: #${order.id}</span></div>
+            <div class="order-date">Ngày đặt: ${order.date}</div>
+          </div>
+          <div style="text-align: center; color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; padding: 12px; border-radius: 6px; font-weight: bold; margin-bottom: 1.5rem; font-size: 0.88rem;">
+            <i class="fas fa-times-circle" style="margin-right: 6px;"></i> ĐƠN HÀNG ĐÃ HỦY
+          </div>
+          <div class="order-items">${itemsHTML}</div>
+          <div class="order-footer">Tổng thanh toán: <span>${new Intl.NumberFormat('vi-VN').format(order.total)} ₫</span></div>
+        </div>`;
+      }
+
+      if (order.status === 'returned') {
+        return `
+        <div class="order-card" style="border-color: #b8daff; background-color: #f0f7ff;">
+          <div class="order-header">
+            <div><span class="order-id">Mã Đơn: #${order.id}</span></div>
+            <div class="order-date">Ngày đặt: ${order.date}</div>
+          </div>
+          <div style="text-align: center; color: #004085; background: #cce5ff; border: 1px solid #b8daff; padding: 12px; border-radius: 6px; font-weight: bold; margin-bottom: 1.5rem; font-size: 0.88rem;">
+            <i class="fas fa-check-circle" style="margin-right: 6px;"></i> ĐƠN HÀNG ĐÃ HOÀN TRẢ (Đã hoàn tiền & hoàn kho)
+          </div>
+          <div class="order-items">${itemsHTML}</div>
+          <div class="order-footer">Tổng thanh toán: <span>${new Intl.NumberFormat('vi-VN').format(order.total)} ₫</span></div>
+        </div>`;
+      }
+
+      if (order.status === 'cancel_pending') {
+        return `
+        <div class="order-card" style="border-color: #ffeeba; background-color: #fffdf5;">
+          <div class="order-header">
+            <div><span class="order-id">Mã Đơn: #${order.id}</span></div>
+            <div class="order-date">Ngày đặt: ${order.date}</div>
+          </div>
+          <div style="text-align: center; color: #856404; background: #fff3cd; border: 1px solid #ffeeba; padding: 12px; border-radius: 6px; font-weight: bold; margin-bottom: 1.5rem; font-size: 0.88rem;">
+            <i class="fas fa-hourglass-half" style="margin-right: 6px;"></i> YÊU CẦU HỦY ĐƠN ĐANG CHỜ DUYỆT
+          </div>
+          <div class="order-items">${itemsHTML}</div>
+          <div class="order-footer">Tổng thanh toán: <span>${new Intl.NumberFormat('vi-VN').format(order.total)} ₫</span></div>
+        </div>`;
+      }
+
+      if (order.status === 'return_pending') {
+        return `
+        <div class="order-card" style="border-color: #ffeeba; background-color: #fffdf5;">
+          <div class="order-header">
+            <div><span class="order-id">Mã Đơn: #${order.id}</span></div>
+            <div class="order-date">Ngày đặt: ${order.date}</div>
+          </div>
+          <div style="text-align: center; color: #856404; background: #fff3cd; border: 1px solid #ffeeba; padding: 12px; border-radius: 6px; font-weight: bold; margin-bottom: 1.5rem; font-size: 0.88rem;">
+            <i class="fas fa-hourglass-half" style="margin-right: 6px;"></i> YÊU CẦU TRẢ HÀNG ĐANG CHỜ DUYỆT
+          </div>
+          <div class="order-items">${itemsHTML}</div>
+          <div class="order-footer">Tổng thanh toán: <span>${new Intl.NumberFormat('vi-VN').format(order.total)} ₫</span></div>
+        </div>`;
+      }
+
+      const isPreparing = order.status === 'preparing' || order.status === 'shipping' || order.status === 'completed';
+      const isShip = order.status === 'shipping' || order.status === 'completed';
+      const isDeliv = order.status === 'completed';
+
+      let actionButton = '';
+      if (order.status === 'preparing') {
+          actionButton = `<button class="btn btn-outline" style="border-radius:6px; padding:6px 12px; font-size:0.8rem; border-color:var(--primary); color:var(--primary); cursor:pointer; font-weight:600; background:transparent;" onclick="requestOrderCancel('${order.id}')"><i class="fas fa-times"></i> Yêu cầu hủy đơn</button>`;
+      } else if (order.status === 'shipping') {
+          actionButton = `<button class="btn btn-outline" style="border-radius:6px; padding:6px 12px; font-size:0.8rem; border-color:#ccc; color:#aaa; cursor:not-allowed; font-weight:500; background:transparent;" disabled><i class="fas fa-truck"></i> Không thể hủy (Đang giao)</button>`;
+      } else if (order.status === 'completed') {
+          actionButton = `<button class="btn btn-outline" style="border-radius:6px; padding:6px 12px; font-size:0.8rem; border-color:var(--primary); color:var(--primary); cursor:pointer; font-weight:600; background:transparent;" onclick="requestOrderReturn('${order.id}')"><i class="fas fa-undo"></i> Yêu cầu trả hàng & hoàn tiền</button>`;
+      }
+
+      let rejectMsgHTML = '';
+      if (order.status === 'preparing' && order.cancelRejected && order.cancelRejectReason) {
+        rejectMsgHTML = `
+        <div style="color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; padding: 10px 12px; border-radius: 6px; font-weight: 600; margin-bottom: 1.5rem; font-size: 0.82rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-exclamation-circle" style="color: #e74c3c; font-size: 1rem;"></i>
+          <span><strong>Yêu cầu hủy đơn bị từ chối:</strong> "${order.cancelRejectReason}"</span>
+        </div>`;
+      } else if (order.status === 'completed' && order.returnRejected && order.returnRejectReason) {
+        rejectMsgHTML = `
+        <div style="color: #721c24; background: #f8d7da; border: 1px solid #f5c6cb; padding: 10px 12px; border-radius: 6px; font-weight: 600; margin-bottom: 1.5rem; font-size: 0.82rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-exclamation-circle" style="color: #e74c3c; font-size: 1rem;"></i>
+          <span><strong>Yêu cầu trả hàng bị từ chối:</strong> "${order.returnRejectReason}"</span>
+        </div>`;
+      }
+
+      return `
+      <div class="order-card">
+        <div class="order-header">
+          <div><span class="order-id">Mã Đơn: #${order.id}</span></div>
+          <div class="order-date">Ngày đặt: ${order.date}</div>
+        </div>
+        <div class="tracking-wrapper">
+          <div class="track-step ${isPreparing ? 'active' : ''}">
+            <div class="track-icon"><i class="fas fa-box-open"></i></div>
+            <div class="track-text">Đang chuẩn bị</div>
+          </div>
+          <div class="track-step ${isShip ? 'active' : ''}">
+            <div class="track-icon"><i class="fas fa-truck"></i></div>
+            <div class="track-text">Đang giao</div>
+          </div>
+          <div class="track-step ${isDeliv ? 'active' : ''}">
+            <div class="track-icon"><i class="fas fa-home"></i></div>
+            <div class="track-text">Đã giao</div>
+          </div>
+        </div>
+        ${rejectMsgHTML}
+        <div class="order-items">${itemsHTML}</div>
+        <div class="order-footer" style="display:flex; justify-content:space-between; align-items:center;">
+          <div>${actionButton}</div>
+          <div>Tổng thanh toán: <span>${new Intl.NumberFormat('vi-VN').format(order.total)} ₫</span></div>
+        </div>
+      </div>`;
+    }
+    window.requestOrderCancel = function(orderId) {
+        if (confirm('Bạn có chắc chắn muốn gửi yêu cầu hủy đơn hàng này không?')) {
+            let orders = JSON.parse(localStorage.getItem('ordersDatabase')) || [];
+            const idx = orders.findIndex(o => o.id === orderId);
+            if (idx > -1) {
+                orders[idx].status = 'cancel_pending';
+                orders[idx].cancelRejected = false;
+                orders[idx].cancelRejectReason = '';
+                localStorage.setItem('ordersDatabase', JSON.stringify(orders));
+                alert('Gửi yêu cầu hủy đơn hàng thành công! Đang chờ Admin duyệt.');
+                window.location.reload();
+            }
+        }
+    };
+
+    window.requestOrderReturn = function(orderId) {
+        const reason = prompt('Nhập lý do trả hàng / hoàn tiền của bạn:');
+        if (reason === null) return; // cancel clicked
+        if (reason.trim() === '') {
+            alert('Vui lòng nhập lý do trả hàng để gửi yêu cầu.');
+            return;
+        }
+        
+        let orders = JSON.parse(localStorage.getItem('ordersDatabase')) || [];
+        const idx = orders.findIndex(o => o.id === orderId);
+        if (idx > -1) {
+            orders[idx].status = 'return_pending';
+            orders[idx].returnReason = reason;
+            orders[idx].returnRejected = false;
+            orders[idx].returnRejectReason = '';
+            localStorage.setItem('ordersDatabase', JSON.stringify(orders));
+            alert('Gửi yêu cầu trả hàng thành công! Đang chờ Admin duyệt.');
+            window.location.reload();
+        }
+    };
+
+  </script>
+</body>
+

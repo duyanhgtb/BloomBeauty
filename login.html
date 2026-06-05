@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng Nhập / Đăng Ký | BLOOM BEAUTY</title>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+      (function() {
+          const savedTheme = localStorage.getItem('theme') || 'light';
+          document.documentElement.setAttribute('data-theme', savedTheme);
+      })();
+  </script>
+  <style>
+    body {
+      background-color: var(--bg-gray);
+      color: var(--text-dark);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .auth-page-container {
+      max-width: 450px;
+      margin: 4rem auto;
+      background: var(--white);
+      color: var(--text-dark);
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border-light);
+    }
+    .auth-page-container h2 {
+      text-align: center;
+      margin-bottom: 2rem;
+      color: var(--secondary);
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+    }
+    .auth-logo {
+      display: block;
+      text-align: center;
+      font-size: 2.5rem;
+      color: var(--secondary);
+      font-weight: 700;
+      text-decoration: none;
+      font-family: 'Playfair Display', serif;
+      letter-spacing: 2px;
+      margin-bottom: 1rem;
+    }
+    .auth-input-group {
+      margin-bottom: 1.2rem;
+    }
+    .auth-input-group input {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid var(--border-light);
+      background-color: var(--input-bg);
+      color: var(--text-dark);
+      border-radius: 8px;
+      font-family: inherit;
+      outline: none;
+      transition: var(--transition);
+      font-size: 1rem;
+    }
+    .auth-input-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 5px rgba(201, 147, 154, 0.4);
+    }
+    .auth-btn {
+      width: 100%;
+      padding: 14px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 1rem;
+    }
+    .auth-btn:hover {
+      background-color: var(--primary-dark);
+    }
+    .switch-auth {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.95rem;
+      color: #666;
+    }
+    .switch-auth a {
+      color: var(--primary);
+      font-weight: bold;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .back-home {
+      display: block;
+      text-align: center;
+      margin-top: 2rem;
+      color: #888;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .back-home:hover {
+      color: var(--secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="page-loader" id="page-loader">
+      <div class="loader-spinner"></div>
+      <div class="loader-logo">BLOOM BEAUTY</div>
+  </div>
+
+  <div class="auth-page-container">
+    <a href="index.html" class="logo" style="justify-content: center; margin-bottom: 2rem;">Bloom Beauty</a>
+    <form id="standalone-login-form" autocomplete="off">
+      <h2 id="form-title">Đăng Nhập</h2>
+      <div id="login-fields">
+        <div class="auth-input-group">
+          <input type="text" id="log-email" placeholder="Tên đăng nhập hoặc Email" required>
+        </div>
+        <div class="auth-input-group">
+          <input type="password" id="log-pass" placeholder="Mật khẩu" required>
+        </div>
+      </div>
+      <div id="register-fields" style="display: none;">
+        <div class="auth-input-group">
+          <input type="text" id="reg-name" placeholder="Họ và tên của bạn">
+        </div>
+        <div class="auth-input-group">
+          <input type="email" id="reg-email" placeholder="Email liên hệ">
+        </div>
+        <div class="auth-input-group">
+          <input type="password" id="reg-pass" placeholder="Mật khẩu tạo mới">
+        </div>
+      </div>
+
+      <button type="submit" class="auth-btn" id="submit-btn">Đăng Nhập</button>
+      
+      <p class="switch-auth" id="switch-to-reg">
+        Chưa có tài khoản? <a>Đăng ký ngay</a>
+      </p>
+      <p class="switch-auth" id="switch-to-log" style="display: none;">
+        Đã có tài khoản? <a>Đăng nhập</a>
+      </p>
+
+    </form>
+    
+    <a href="index.html" class="back-home">&larr; Quay lại trang chủ</a>
+  </div>
+
+      <!-- Firebase Compat SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('isLoggedIn') === 'true') {
+          window.location.href = 'profile.html';
+          return;
+      }
+
+      const loginForm = document.getElementById('standalone-login-form');
+      const title = document.getElementById('form-title');
+      const loginFields = document.getElementById('login-fields');
+      const registerFields = document.getElementById('register-fields');
+      const submitBtn = document.getElementById('submit-btn');
+      
+      const toRegBtn = document.getElementById('switch-to-reg');
+      const toLogBtn = document.getElementById('switch-to-log');
+
+      const regName = document.getElementById('reg-name');
+      const regEmail = document.getElementById('reg-email');
+      const regPass = document.getElementById('reg-pass');
+      
+      const logEmail = document.getElementById('log-email');
+      const logPass = document.getElementById('log-pass');
+
+      let isRegisterMode = false;
+
+      toRegBtn.addEventListener('click', () => {
+        isRegisterMode = true;
+        title.textContent = 'Đăng Ký Mới';
+        loginFields.style.display = 'none';
+        registerFields.style.display = 'block';
+        submitBtn.textContent = 'Tạo Tài Khoản';
+        
+        toRegBtn.style.display = 'none';
+        toLogBtn.style.display = 'block';
+
+        loginFields.querySelectorAll('input').forEach(i => i.removeAttribute('required'));
+        regName.setAttribute('required', 'true');
+        regEmail.setAttribute('required', 'true');
+        regPass.setAttribute('required', 'true');
+        regPass.setAttribute('minlength', '6');
+      });
+
+      toLogBtn.addEventListener('click', () => {
+        isRegisterMode = false;
+        title.textContent = 'Đăng Nhập';
+        registerFields.style.display = 'none';
+        loginFields.style.display = 'block';
+        submitBtn.textContent = 'Đăng Nhập';
+        
+        toLogBtn.style.display = 'none';
+        toRegBtn.style.display = 'block';
+
+        regName.removeAttribute('required');
+        regEmail.removeAttribute('required');
+        regPass.removeAttribute('required');
+        loginFields.querySelectorAll('input').forEach(i => i.setAttribute('required', 'true'));
+      });
+
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        
+        let usersDB = JSON.parse(localStorage.getItem('usersDatabase')) || [];
+
+        if (isRegisterMode) {
+          const email = regEmail.value.trim();
+          const pswd = regPass.value.trim();
+          const name = regName.value.trim();
+          
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+              alert('Email không hợp lệ! Vui lòng kiểm tra lại.');
+              return;
+          }
+          
+          if(usersDB.find(u => u.email === email)) {
+              alert('Email này đã được đăng ký!');
+              return;
+          }
+          
+          usersDB.push({
+              name: name,
+              email: email,
+              password: pswd,
+              createdAt: new Date().toISOString()
+          });
+          localStorage.setItem('usersDatabase', JSON.stringify(usersDB));
+          
+          alert('Hồ sơ của bạn đã được tạo!');
+          toLogBtn.click();
+        } else {
+          const email = logEmail.value.trim();
+          const pswd = logPass.value.trim();
+          if ((email === 'admin@thebeauty.vn' || email === 'admin') && pswd === 'admin') {
+              localStorage.setItem('isLoggedIn', 'true');
+              localStorage.setItem('loggedInEmail', 'admin@thebeauty.vn');
+              localStorage.setItem('isAdmin', 'true');
+              alert('Đăng nhập thành công với quyền Quản trị viên!');
+              window.location.href = 'admin.html';
+              return;
+          }
+          
+          const user = usersDB.find(u => u.email === email);
+          if(!user || user.password !== pswd) {
+              alert('Email hoặc mật khẩu không chính xác!');
+              return;
+          }
+          
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('loggedInEmail', user.email);
+          localStorage.removeItem('isAdmin'); // Ensure normal user doesn't carry admin privileges
+          alert('Đăng nhập thành công!');
+
+          const cart = JSON.parse(localStorage.getItem('cartInfo')) || [];
+          if (cart.length > 0) {
+              window.location.href = 'checkout.html';
+          } else {
+              window.location.href = 'index.html';
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+
