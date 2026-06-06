@@ -657,34 +657,44 @@
       </div>`;
     }
     window.requestOrderCancel = function(orderId) {
-    if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?')) {
-        let orders = JSON.parse(localStorage.getItem('ordersDatabase')) || [];
-        const idx = orders.findIndex(o => o.id === orderId);
-        if (idx > -1) {
-            const oldStatus = orders[idx].status;
-            if (oldStatus !== 'cancelled') {
+        if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?')) {
+            let orders = JSON.parse(localStorage.getItem('ordersDatabase')) || [];
+            const idx = orders.findIndex(o => o.id === orderId);
+            if (idx > -1) {
+                const oldStatus = orders[idx].status;
+                let syncPromises = [];
+                let productsDB = null;
                 
-                let productsDB = JSON.parse(localStorage.getItem('productsDatabase')) || [];
-                orders[idx].items.forEach(item => {
-                    const prod = productsDB.find(p => p.id === item.id);
-                    if (prod) {
-                        const currentStock = prod.stock !== undefined ? prod.stock : 50;
-                        prod.stock = currentStock + item.quantity;
+                if (oldStatus !== 'cancelled') {
+                    productsDB = JSON.parse(localStorage.getItem('productsDatabase')) || [];
+                    orders[idx].items.forEach(item => {
+                        const prod = productsDB.find(p => p.id === item.id);
+                        if (prod) {
+                            const currentStock = prod.stock !== undefined ? prod.stock : 50;
+                            prod.stock = currentStock + item.quantity;
+                        }
+                    });
+                    syncPromises.push(window.syncDataToFirebase('productsDatabase', JSON.stringify(productsDB)));
+                }
+                
+                orders[idx].status = 'cancelled';
+                syncPromises.push(window.syncDataToFirebase('ordersDatabase', JSON.stringify(orders)));
+                
+                Promise.all(syncPromises).then(() => {
+                    alert('Hủy đơn hàng thành công! Số lượng sản phẩm đã được hoàn lại vào kho.');
+                    window.location.reload();
+                }).catch(err => {
+                    console.error("Error syncing cancel request:", err);
+                    if (productsDB) {
+                        localStorage.setItem('productsDatabase', JSON.stringify(productsDB));
                     }
+                    localStorage.setItem('ordersDatabase', JSON.stringify(orders));
+                    alert('Hủy đơn hàng thành công! Số lượng sản phẩm đã được hoàn lại vào kho.');
+                    window.location.reload();
                 });
-                localStorage.setItem('productsDatabase', JSON.stringify(productsDB));
             }
-            
-            
-            orders[idx].status = 'cancelled';
-            localStorage.setItem('ordersDatabase', JSON.stringify(orders));
-            alert('Hủy đơn hàng thành công! Số lượng sản phẩm đã được hoàn lại vào kho.');
-            setTimeout(() => {
-                window.location.reload();
-            }, 1000);
         }
-    }
-};
+    };
 
     window.requestOrderReturn = function(orderId) {
         const reason = prompt('Nhập lý do trả hàng / hoàn tiền của bạn:');
@@ -701,11 +711,16 @@
             orders[idx].returnReason = reason;
             orders[idx].returnRejected = false;
             orders[idx].returnRejectReason = '';
-            localStorage.setItem('ordersDatabase', JSON.stringify(orders));
-            alert('Gửi yêu cầu trả hàng thành công! Đang chờ Admin duyệt.');
-            setTimeout(() => {
+            
+            window.syncDataToFirebase('ordersDatabase', JSON.stringify(orders)).then(() => {
+                alert('Gửi yêu cầu trả hàng thành công! Đang chờ Admin duyệt.');
                 window.location.reload();
-            }, 1000);
+            }).catch(err => {
+                console.error("Error syncing return request:", err);
+                localStorage.setItem('ordersDatabase', JSON.stringify(orders));
+                alert('Gửi yêu cầu trả hàng thành công! Đang chờ Admin duyệt.');
+                window.location.reload();
+            });
         }
     };
 

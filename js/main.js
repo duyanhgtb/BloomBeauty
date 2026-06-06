@@ -33,6 +33,38 @@ localStorage.setItem = function(key, value) {
     }
 };
 
+window.syncDataToFirebase = function(key, value) {
+    return new Promise((resolve) => {
+        originalSetItem.call(localStorage, key, value);
+        const syncKeysMap = {
+            'productsDatabase': 'products',
+            'ordersDatabase': 'orders',
+            'usersDatabase': 'users',
+            'inventoryVouchersDatabase': 'vouchers',
+            'chatMessagesDatabase': 'messages'
+        };
+        if (syncKeysMap[key]) {
+            try {
+                const parsedData = JSON.parse(value);
+                db.collection('app_data').doc(syncKeysMap[key]).set({
+                    data: parsedData,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    resolve();
+                }).catch(err => {
+                    console.error("Firebase write error in syncDataToFirebase for " + key, err);
+                    resolve();
+                });
+            } catch (e) {
+                console.error("Error parsing/writing in syncDataToFirebase for " + key, e);
+                resolve();
+            }
+        } else {
+            resolve();
+        }
+    });
+};
+
 const syncKeys = {
     'products': { localKey: 'productsDatabase', callback: () => { if (window.renderProducts) window.renderProducts(); if (window.renderProductsTable) window.renderProductsTable(); } },
     'orders': { localKey: 'ordersDatabase', callback: () => { if (window.renderOrders) window.renderOrders(); if (window.renderOrdersTable) window.renderOrdersTable(); if (window.renderDashboard) window.renderDashboard(); if (window.renderSalesInvoices) window.renderSalesInvoices(); } },
