@@ -1,4 +1,4 @@
-const firebaseConfig = {
+﻿const firebaseConfig = {
   apiKey: "AIzaSyC5XBveaNQRDlZ7INXl9edi-a5kERSD91A",
   authDomain: "web-group-cosmetic.firebaseapp.com",
   projectId: "web-group-cosmetic",
@@ -175,7 +175,7 @@ function hidePageLoader() {
     if (loader) {
         setTimeout(() => {
             loader.classList.add('fade-out');
-        }, 600); // Elegant brief pause
+        }, 600);
     }
 }
 function initTheme() {
@@ -464,7 +464,7 @@ class SliderManager {
         this.nextBtn = document.getElementById('slider-next-btn');
         this.dotsContainer = document.getElementById('slider-dots');
         
-        if (!this.wrapper) return; // Only run on pages containing the slider
+        if (!this.wrapper) return;
 
         this.slides = Array.from(this.wrapper.querySelectorAll('.slide'));
         this.currentIndex = 0;

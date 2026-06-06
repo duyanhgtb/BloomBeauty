@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
@@ -785,7 +785,7 @@
       </div>
     </div>
 
-  </div> <!-- dashboard closing tag -->
+  </div> 
   <div class="modal-overlay" id="reject-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:4000; align-items:center; justify-content:center; backdrop-filter: blur(5px);">
       <div class="modal-content" style="background:var(--white); padding:2rem; border-radius:12px; max-width:400px; width:90%; position:relative; box-shadow:0 8px 24px rgba(0,0,0,0.2);">
           <span class="material-icons" onclick="closeRejectModal()" style="position:absolute; top:15px; right:15px; cursor:pointer; color:#888; font-size:1.5rem;">close</span>
@@ -866,7 +866,7 @@
       </div>
   </div>
 
-      <!-- Firebase Compat SDKs -->
+      
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="js/main.js"></script>
@@ -1240,7 +1240,7 @@
                     
                     document.getElementById('reject-reason-input').value = '';
                     document.getElementById('reject-modal-overlay').style.display = 'flex';
-                    return; // Wait for modal action
+                    return;
                 }
                 if ((newStatus === 'cancelled' || newStatus === 'returned') && 
                     (oldStatus !== 'cancelled' && oldStatus !== 'returned')) {
@@ -1398,7 +1398,7 @@ renderDashboard();
             }
 
             if (!img) {
-                img = 'images/lipstick_mockup_1776404467315.png'; // default fallback
+                img = 'images/lipstick_mockup_1776404467315.png';
             }
 
             let products = JSON.parse(localStorage.getItem('productsDatabase')) || [];
@@ -1497,7 +1497,7 @@ renderDashboard();
                 selectedProd.stock = currentStock + quantity;
                 localStorage.setItem('productsDatabase', JSON.stringify(products));
                 const newVoucher = {
-                    id: 'NK' + Math.floor(10000 + Math.random() * 90000), // Random 5 digit ID
+                    id: 'NK' + Math.floor(10000 + Math.random() * 90000),
                     date: formattedDate,
                     timestamp: timestamp,
                     productName: selectedProd.title,
@@ -1516,7 +1516,7 @@ renderDashboard();
                 now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
                 document.getElementById('inventory-date-input').value = now.toISOString().slice(0, 16);
                 renderInventoryTable();
-                renderDashboard(); // Recalculate stats
+                renderDashboard();
                 alert(`🎉 Nhập kho thành công ${quantity} sản phẩm "${selectedProd.title}"!`);
             }
         });
