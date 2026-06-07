@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!initialSyncDone) {
                 hidePageLoader();
             }
-        }, 4000); // Safety timeout
+        }, 4000);
     }
 });
 
@@ -227,7 +227,7 @@ function hidePageLoader() {
     if (loader) {
         setTimeout(() => {
             loader.classList.add('fade-out');
-        }, 600); // Elegant brief pause
+        }, 600);
     }
 }
 function initTheme() {
@@ -1091,3 +1091,4 @@ class SidebarFilter {
     }
 }
 window.SidebarFilter = SidebarFilter;
+
