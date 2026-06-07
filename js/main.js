@@ -206,16 +206,17 @@ Object.keys(syncKeys).forEach(docId => {
 
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
-    initApp();
     if (initialSyncDone) {
+        initApp();
         hidePageLoader();
     } else {
         document.addEventListener('firestoreInitSyncComplete', () => {
-            hidePageLoader();
             initApp();
+            hidePageLoader();
         });
         setTimeout(() => {
             if (!initialSyncDone) {
+                initApp();
                 hidePageLoader();
             }
         }, 4000);

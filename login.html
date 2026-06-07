@@ -303,9 +303,7 @@
               localStorage.setItem('loggedInEmail', user.email);
               localStorage.removeItem('isAdmin');
               alert('Đăng nhập thành công!');
-
-              const cart = JSON.parse(localStorage.getItem('cartInfo')) || [];
-              window.location.href = cart.length > 0 ? 'checkout.html' : 'index.html';
+              window.location.href = 'index.html';
           }).catch(err => {
               console.error('Firestore error during login:', err);
               const usersDB = JSON.parse(localStorage.getItem('usersDatabase')) || [];
@@ -320,8 +318,7 @@
               localStorage.setItem('loggedInEmail', user.email);
               localStorage.removeItem('isAdmin');
               alert('Đăng nhập thành công!');
-              const cart = JSON.parse(localStorage.getItem('cartInfo')) || [];
-              window.location.href = cart.length > 0 ? 'checkout.html' : 'index.html';
+              window.location.href = 'index.html';
           });
         }
       });
