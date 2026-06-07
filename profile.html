@@ -373,11 +373,26 @@
         window.location.href = 'login.html';
         return;
       }
-      
-      let usersDB = JSON.parse(localStorage.getItem('usersDatabase')) || [];
+
       let loggedInEmail = localStorage.getItem('loggedInEmail');
-      let currentUser = loggedInEmail ? usersDB.find(u => u.email.toLowerCase() === loggedInEmail.toLowerCase()) : null;
-      
+      let currentUser = null;
+
+      function applyUserToUI(user) {
+        currentUser = user;
+        if (!user) return;
+        document.getElementById('user-name').textContent = user.name;
+        document.getElementById('user-email').textContent = user.email;
+        document.getElementById('user-avatar').textContent = user.name.charAt(0).toUpperCase();
+        const infoNameInput = document.getElementById('info-name');
+        const infoEmailInput = document.getElementById('info-email');
+        const infoJoinedInput = document.getElementById('info-joined');
+        if (infoNameInput) infoNameInput.value = user.name;
+        if (infoEmailInput) infoEmailInput.value = user.email;
+        if (infoJoinedInput && user.createdAt) {
+          infoJoinedInput.value = new Date(user.createdAt).toLocaleDateString('vi-VN');
+        }
+      }
+
       if (localStorage.getItem('isAdmin') === 'true') {
         document.getElementById('user-name').textContent = 'Quản Trị Viên';
         document.getElementById('user-email').textContent = 'admin@thebeauty.vn';
@@ -391,10 +406,16 @@
             adminLi.onclick = () => window.location.href = 'admin.html';
             menu.insertBefore(adminLi, menu.firstChild);
         }
-      } else if (currentUser) {
-        document.getElementById('user-name').textContent = currentUser.name;
-        document.getElementById('user-email').textContent = currentUser.email;
-        document.getElementById('user-avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+      } else {
+        db.collection('app_data').doc('users').get().then(doc => {
+          const usersDB = (doc.exists && doc.data().data) ? doc.data().data : (JSON.parse(localStorage.getItem('usersDatabase')) || []);
+          const user = loggedInEmail ? usersDB.find(u => u.email.toLowerCase() === loggedInEmail.toLowerCase()) : null;
+          applyUserToUI(user);
+        }).catch(() => {
+          const usersDB = JSON.parse(localStorage.getItem('usersDatabase')) || [];
+          const user = loggedInEmail ? usersDB.find(u => u.email.toLowerCase() === loggedInEmail.toLowerCase()) : null;
+          applyUserToUI(user);
+        });
       }
       function renderOrders() {
         let allOrdersDB = JSON.parse(localStorage.getItem('ordersDatabase')) || [];
@@ -438,14 +459,9 @@
       const infoJoinedInput = document.getElementById('info-joined');
 
       if (localStorage.getItem('isAdmin') === 'true') {
-          infoNameInput.value = 'Quản Trị Viên';
-          infoEmailInput.value = 'admin@thebeauty.vn';
-          infoJoinedInput.value = 'Hệ thống';
-      } else if (currentUser) {
-          infoNameInput.value = currentUser.name;
-          infoEmailInput.value = currentUser.email;
-          const joinedDate = new Date(currentUser.createdAt);
-          infoJoinedInput.value = joinedDate.toLocaleDateString('vi-VN');
+          if (infoNameInput) infoNameInput.value = 'Quản Trị Viên';
+          if (infoEmailInput) infoEmailInput.value = 'admin@thebeauty.vn';
+          if (infoJoinedInput) infoJoinedInput.value = 'Hệ thống';
       }
       const infoForm = document.getElementById('profile-info-form');
       if (infoForm) {
@@ -456,20 +472,41 @@
                   return;
               }
 
-              const newName = infoNameInput.value.trim();
-              if (currentUser && newName) {
-                  currentUser.name = newName;
-                  const userIdx = loggedInEmail ? usersDB.findIndex(u => u.email.toLowerCase() === loggedInEmail.toLowerCase()) : -1;
+              const newName = document.getElementById('info-name').value.trim();
+              if (!currentUser || !newName) return;
+
+              const saveBtn = infoForm.querySelector('button[type="submit"]');
+              if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = 'Đang lưu...'; }
+
+              db.collection('app_data').doc('users').get().then(doc => {
+                  const freshUsersDB = (doc.exists && doc.data().data) ? doc.data().data : (JSON.parse(localStorage.getItem('usersDatabase')) || []);
+                  const userIdx = loggedInEmail ? freshUsersDB.findIndex(u => u.email.toLowerCase() === loggedInEmail.toLowerCase()) : -1;
                   if (userIdx > -1) {
-                      usersDB[userIdx].name = newName;
-                      window.syncDataToFirebase('usersDatabase', JSON.stringify(usersDB)).then(() => {
+                      freshUsersDB[userIdx].name = newName;
+                      currentUser.name = newName;
+                      window.syncDataToFirebase('usersDatabase', JSON.stringify(freshUsersDB)).then(() => {
                           document.getElementById('user-name').textContent = newName;
                           document.getElementById('user-avatar').textContent = newName.charAt(0).toUpperCase();
                           if (window.authManager) window.authManager.updateUI();
                           alert('Cập nhật thông tin cá nhân thành công!');
+                          if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Lưu Thay Đổi'; }
                       });
                   }
-              }
+              }).catch(() => {
+                  const localUsersDB = JSON.parse(localStorage.getItem('usersDatabase')) || [];
+                  const userIdx = loggedInEmail ? localUsersDB.findIndex(u => u.email.toLowerCase() === loggedInEmail.toLowerCase()) : -1;
+                  if (userIdx > -1) {
+                      localUsersDB[userIdx].name = newName;
+                      currentUser.name = newName;
+                      window.syncDataToFirebase('usersDatabase', JSON.stringify(localUsersDB)).then(() => {
+                          document.getElementById('user-name').textContent = newName;
+                          document.getElementById('user-avatar').textContent = newName.charAt(0).toUpperCase();
+                          if (window.authManager) window.authManager.updateUI();
+                          alert('Cập nhật thông tin cá nhân thành công!');
+                          if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = 'Lưu Thay Đổi'; }
+                      });
+                  }
+              });
           });
       }
       const addressContainer = document.getElementById('address-list-container');
