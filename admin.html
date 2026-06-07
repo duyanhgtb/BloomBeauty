@@ -1194,6 +1194,9 @@
                 } else {
                     customerInfoHtml += `<br><span style="font-size:0.8rem; color:#666;">${order.userEmail}</span>`;
                 }
+                if (order.customerAddress) {
+                    customerInfoHtml += `<br><span style="font-size:0.8rem; color:#777;"><i class="fas fa-map-marker-alt"></i> ${order.customerAddress}</span>`;
+                }
                 
                 let itemsListHtml = '<ul class="admin-order-items">';
                 order.items.forEach(item => {
