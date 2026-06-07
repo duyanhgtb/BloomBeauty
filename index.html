@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 
 <head>
@@ -998,7 +998,7 @@
                 return sessionStorage.getItem('chatGuestName') || 'Khách vãng lai';
             }
             const usersDB = JSON.parse(localStorage.getItem('usersDatabase')) || [];
-            const user = usersDB.find(u => u.email === email);
+            const user = email ? usersDB.find(u => u.email.toLowerCase() === email.toLowerCase()) : null;
             return user ? user.name : 'Khách hàng';
         }
 

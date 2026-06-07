@@ -1,4 +1,4 @@
-﻿const firebaseConfig = {
+const firebaseConfig = {
   apiKey: "AIzaSyC5XBveaNQRDlZ7INXl9edi-a5kERSD91A",
   authDomain: "web-group-cosmetic.firebaseapp.com",
   projectId: "web-group-cosmetic",
@@ -66,37 +66,12 @@ window.syncDataToFirebase = function(key, value) {
 };
 
 const syncKeys = {
-    'products': { localKey: 'productsDatabase', callback: () => { if (window.renderProducts) window.renderProducts(); if (window.renderProductsTable) window.renderProductsTable(); } },
+    'products': { localKey: 'productsDatabase', callback: () => { if (window.renderProducts) window.renderProducts(); if (window.renderProductsTable) window.renderProductsTable(); if (window.renderDashboard) window.renderDashboard(); } },
     'orders': { localKey: 'ordersDatabase', callback: () => { if (window.renderOrders) window.renderOrders(); if (window.renderOrdersTable) window.renderOrdersTable(); if (window.renderDashboard) window.renderDashboard(); if (window.renderSalesInvoices) window.renderSalesInvoices(); } },
-    'users': { localKey: 'usersDatabase', callback: () => { if (window.renderUsers) window.renderUsers(); if (window.renderUsersTable) window.renderUsersTable(); } },
-    'vouchers': { localKey: 'inventoryVouchersDatabase', callback: () => { if (window.renderVouchers) window.renderVouchers(); if (window.renderInventoryTable) window.renderInventoryTable(); if (window.renderPurchaseInvoices) window.renderPurchaseInvoices(); } },
+    'users': { localKey: 'usersDatabase', callback: () => { if (window.renderUsers) window.renderUsers(); if (window.renderUsersTable) window.renderUsersTable(); if (window.renderDashboard) window.renderDashboard(); } },
+    'vouchers': { localKey: 'inventoryVouchersDatabase', callback: () => { if (window.renderVouchers) window.renderVouchers(); if (window.renderInventoryTable) window.renderInventoryTable(); if (window.renderPurchaseInvoices) window.renderPurchaseInvoices(); if (window.renderDashboard) window.renderDashboard(); } },
     'messages': { localKey: 'chatMessagesDatabase', callback: () => { if (window.loadAndRenderChatHistory) window.loadAndRenderChatHistory(); if (window.renderChatMessages) window.renderChatMessages(); if (window.renderAdminChatMessages) window.renderAdminChatMessages(); } }
 };
-
-Object.keys(syncKeys).forEach(docId => {
-    const config = syncKeys[docId];
-    db.collection('app_data').doc(docId).onSnapshot(doc => {
-        if (doc.exists) {
-            const remoteData = doc.data().data;
-            if (remoteData) {
-                originalSetItem.call(localStorage, config.localKey, JSON.stringify(remoteData));
-                config.callback();
-            }
-        } else {
-            const localVal = localStorage.getItem(config.localKey);
-            if (localVal) {
-                try {
-                    db.collection('app_data').doc(docId).set({
-                        data: JSON.parse(localVal),
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                } catch(e) {}
-            }
-        }
-    }, err => {
-        console.error("Firebase read error for " + docId, err);
-    });
-});
 
 const defaultProducts = [
     { id: 'p1', title: 'Serum Tinh Chất Trà Xanh', category: 'Chăm sóc da', price: 850000, oldPrice: 1200000, img: 'images/luxury_serum_1776404500065.png', stock: 50, skinTypes: ["dầu", "hỗn hợp", "nhạy cảm"], description: "Kháng viêm, kiểm soát bã nhờn, se khít lỗ chân lông và làm dịu nốt mụn.", brand: "Innisfree" },
@@ -120,62 +95,139 @@ const defaultProducts = [
     { id: 'p19', title: 'Tinh Chất Tái Tạo Da Peptide Essence', category: 'Chăm sóc da', price: 1600000, img: 'images/skincare_essence_1776407411838.png', stock: 28, skinTypes: ["khô", "nhạy cảm"], description: "Chống lão hóa, nâng cơ mặt và mờ nếp nhăn li ti nhờ phức hợp Peptide.", brand: "The Ordinary" },
     { id: 'p20', title: 'Nước Hoa Nữ Sweet Pink EDP', category: 'Nước hoa', price: 1750000, img: 'images/perfume_pink_1776407722598.png', stock: 32, skinTypes: ["mọi loại da"], description: "Phong cách nữ tính ngọt ngào với hương thơm thanh tao của hoa anh đào.", brand: "Dior" }
 ];
-let productsDB = JSON.parse(localStorage.getItem('productsDatabase')) || [];
-let dbNeedsUpdate = false;
 
-if (productsDB.length === 0) {
-    productsDB = [...defaultProducts];
-    dbNeedsUpdate = true;
-} else {
-    productsDB = productsDB.map(p => {
-        let changed = false;
-        if (p.stock === undefined) {
-            p.stock = 50;
-            changed = true;
+function normalizeProducts(productsDB) {
+    let dbNeedsUpdate = false;
+    if (!productsDB || productsDB.length === 0) {
+        productsDB = [...defaultProducts];
+        dbNeedsUpdate = true;
+    } else {
+        productsDB = productsDB.map(p => {
+            let changed = false;
+            if (p.stock === undefined) {
+                p.stock = 50;
+                changed = true;
+            }
+            if (p.cost === undefined) {
+                p.cost = Math.floor(p.price * 0.6);
+                changed = true;
+            }
+            const matched = defaultProducts.find(dp => dp.id === p.id);
+            if (p.skinTypes === undefined) {
+                p.skinTypes = matched ? matched.skinTypes : ["mọi loại da"];
+                changed = true;
+            }
+            if (p.description === undefined) {
+                p.description = matched ? matched.description : "Sản phẩm chăm sóc sắc đẹp chính hãng chất lượng cao.";
+                changed = true;
+            }
+            if (p.brand === undefined) {
+                p.brand = matched ? matched.brand : "The Beauty";
+                changed = true;
+            }
+            if (p.oldPrice === undefined && matched && matched.oldPrice !== undefined) {
+                p.oldPrice = matched.oldPrice;
+                changed = true;
+            }
+            if (changed) {
+                dbNeedsUpdate = true;
+            }
+            return p;
+        });
+    }
+    return { productsDB, dbNeedsUpdate };
+}
+
+let pendingSyncs = Object.keys(syncKeys).length;
+let initialSyncDone = false;
+
+Object.keys(syncKeys).forEach(docId => {
+    const config = syncKeys[docId];
+    let isFirstSnapshot = true;
+    
+    db.collection('app_data').doc(docId).onSnapshot(doc => {
+        if (doc.exists) {
+            let remoteData = doc.data().data;
+            if (remoteData) {
+                if (docId === 'products') {
+                    const normalized = normalizeProducts(remoteData);
+                    remoteData = normalized.productsDB;
+                    if (normalized.dbNeedsUpdate) {
+                        db.collection('app_data').doc('products').set({
+                            data: remoteData,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }).catch(e => console.error("Error writing normalized products:", e));
+                    }
+                }
+                originalSetItem.call(localStorage, config.localKey, JSON.stringify(remoteData));
+                config.callback();
+            }
+        } else {
+            let localVal = localStorage.getItem(config.localKey);
+            let localData = null;
+            if (localVal) {
+                try { localData = JSON.parse(localVal); } catch(e) {}
+            }
+            
+            if (docId === 'products') {
+                const normalized = normalizeProducts(localData);
+                localData = normalized.productsDB;
+                originalSetItem.call(localStorage, config.localKey, JSON.stringify(localData));
+            }
+            
+            if (localData) {
+                db.collection('app_data').doc(docId).set({
+                    data: localData,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }).catch(e => console.error("Error initializing firestore collection for " + docId, e));
+            }
         }
-        if (p.cost === undefined) {
-            p.cost = Math.floor(p.price * 0.6);
-            changed = true;
+        
+        if (isFirstSnapshot) {
+            isFirstSnapshot = false;
+            pendingSyncs--;
+            if (pendingSyncs === 0) {
+                initialSyncDone = true;
+                document.dispatchEvent(new CustomEvent('firestoreInitSyncComplete'));
+            }
         }
-        const matched = defaultProducts.find(dp => dp.id === p.id);
-        if (p.skinTypes === undefined) {
-            p.skinTypes = matched ? matched.skinTypes : ["mọi loại da"];
-            changed = true;
+    }, err => {
+        console.error("Firebase read error for " + docId, err);
+        if (isFirstSnapshot) {
+            isFirstSnapshot = false;
+            pendingSyncs--;
+            if (pendingSyncs === 0) {
+                initialSyncDone = true;
+                document.dispatchEvent(new CustomEvent('firestoreInitSyncComplete'));
+            }
         }
-        if (p.description === undefined) {
-            p.description = matched ? matched.description : "Sản phẩm chăm sóc sắc đẹp chính hãng chất lượng cao.";
-            changed = true;
-        }
-        if (p.brand === undefined) {
-            p.brand = matched ? matched.brand : "The Beauty";
-            changed = true;
-        }
-        if (p.oldPrice === undefined && matched && matched.oldPrice !== undefined) {
-            p.oldPrice = matched.oldPrice;
-            changed = true;
-        }
-        if (changed) {
-            dbNeedsUpdate = true;
-        }
-        return p;
     });
-}
-
-if (dbNeedsUpdate) {
-    localStorage.setItem('productsDatabase', JSON.stringify(productsDB));
-}
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     initTheme();
     initApp();
-    hidePageLoader();
+    if (initialSyncDone) {
+        hidePageLoader();
+    } else {
+        document.addEventListener('firestoreInitSyncComplete', () => {
+            hidePageLoader();
+            initApp();
+        });
+        setTimeout(() => {
+            if (!initialSyncDone) {
+                hidePageLoader();
+            }
+        }, 4000); // Safety timeout
+    }
 });
+
 function hidePageLoader() {
     const loader = document.querySelector('.page-loader');
     if (loader) {
         setTimeout(() => {
             loader.classList.add('fade-out');
-        }, 600);
+        }, 600); // Elegant brief pause
     }
 }
 function initTheme() {
@@ -350,7 +402,7 @@ class AuthManager {
     updateUI() {
         const usersDB = JSON.parse(localStorage.getItem('usersDatabase')) || [];
         const loggedEmail = localStorage.getItem('loggedInEmail');
-        const user = usersDB.find(u => u.email === loggedEmail);
+        const user = loggedEmail ? usersDB.find(u => u.email.toLowerCase() === loggedEmail.toLowerCase()) : null;
         const displayName = user ? user.name.split(' ')[0] : 'Tài khoản';
         const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
@@ -464,7 +516,7 @@ class SliderManager {
         this.nextBtn = document.getElementById('slider-next-btn');
         this.dotsContainer = document.getElementById('slider-dots');
         
-        if (!this.wrapper) return;
+        if (!this.wrapper) return; // Only run on pages containing the slider
 
         this.slides = Array.from(this.wrapper.querySelectorAll('.slide'));
         this.currentIndex = 0;

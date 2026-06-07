@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
@@ -583,6 +583,7 @@
             <th>Tên Sản Phẩm</th>
             <th>Danh Mục</th>
             <th>Đơn Giá</th>
+            <th>Giá Nhập</th>
             <th>Tồn Kho</th>
             <th>Hành Động</th>
           </tr>
@@ -921,10 +922,30 @@
                 renderOrdersTable();
             }
         }
+        function normalizeDateString(dateStr) {
+            if (!dateStr) return '';
+            const datePart = dateStr.split(' ')[0];
+            const parts = datePart.includes('/') ? datePart.split('/') : datePart.split('-');
+            if (parts.length < 3) return datePart;
+            let day, month, year;
+            if (parts[0].length === 4) {
+                year = parseInt(parts[0]);
+                month = parseInt(parts[1]);
+                day = parseInt(parts[2]);
+            } else {
+                day = parseInt(parts[0]);
+                month = parseInt(parts[1]);
+                year = parseInt(parts[2]);
+            }
+            return `${day}/${month}/${year}`;
+        }
+
         function renderDashboard() {
             const users = JSON.parse(localStorage.getItem('usersDatabase')) || [];
             const orders = JSON.parse(localStorage.getItem('ordersDatabase')) || [];
             const productsDB = JSON.parse(localStorage.getItem('productsDatabase')) || [];
+            const vouchers = JSON.parse(localStorage.getItem('inventoryVouchersDatabase')) || [];
+            
             let totalRevenue = 0;
             let totalCost = 0;
             let pendingCount = 0;
@@ -933,14 +954,21 @@
             let completedCount = 0;
             let cancelledCount = 0;
 
+            // Tính tổng tiền nhập kho
+            const totalVoucherCost = vouchers.reduce((sum, v) => sum + (v.total || 0), 0);
+
             orders.forEach(order => {
                 if (order.status === 'completed') {
                     totalRevenue += order.total;
                     completedCount++;
                     order.items.forEach(item => {
-                        const dbProd = productsDB.find(p => p.id === item.id);
-                        const unitCost = dbProd && dbProd.cost !== undefined ? dbProd.cost : Math.floor(item.price * 0.6);
-                        totalCost += unitCost * item.quantity;
+                        // Tránh tính đúp nếu sản phẩm đó đã nằm trong hóa đơn nhập kho (vì đã tính ở totalVoucherCost)
+                        const hasVoucher = vouchers.some(v => v.productName === item.title);
+                        if (!hasVoucher) {
+                            const dbProd = productsDB.find(p => p.id === item.id);
+                            const unitCost = dbProd && dbProd.cost !== undefined ? dbProd.cost : Math.floor(item.price * 0.6);
+                            totalCost += unitCost * item.quantity;
+                        }
                     });
                 } else if (order.status === 'preparing') {
                     preparingCount++;
@@ -953,6 +981,9 @@
                 }
             });
 
+            // Cộng tiền nhập kho vào tổng vốn hàng
+            totalCost += totalVoucherCost;
+
             const totalProfit = totalRevenue - totalCost;
             document.getElementById('stat-revenue').textContent = new Intl.NumberFormat('vi-VN').format(totalRevenue) + ' ₫';
             document.getElementById('stat-cost').textContent = new Intl.NumberFormat('vi-VN').format(totalCost) + ' ₫';
@@ -960,22 +991,34 @@
             document.getElementById('stat-orders').textContent = orders.length;
             document.getElementById('stat-users').textContent = users.length;
             document.getElementById('stat-pending').textContent = pendingCount;
+            
             const revenueMap = {};
             const profitMap = {};
             
             orders.forEach(order => {
                 if (order.status === 'completed') {
-                    revenueMap[order.date] = (revenueMap[order.date] || 0) + order.total;
+                    const normDate = normalizeDateString(order.date);
+                    revenueMap[normDate] = (revenueMap[normDate] || 0) + order.total;
                     
                     let orderCost = 0;
                     order.items.forEach(item => {
-                        const dbProd = productsDB.find(p => p.id === item.id);
-                        const unitCost = dbProd && dbProd.cost !== undefined ? dbProd.cost : Math.floor(item.price * 0.6);
-                        orderCost += unitCost * item.quantity;
+                        const hasVoucher = vouchers.some(v => v.productName === item.title);
+                        if (!hasVoucher) {
+                            const dbProd = productsDB.find(p => p.id === item.id);
+                            const unitCost = dbProd && dbProd.cost !== undefined ? dbProd.cost : Math.floor(item.price * 0.6);
+                            orderCost += unitCost * item.quantity;
+                        }
                     });
                     const orderProfit = order.total - orderCost;
-                    profitMap[order.date] = (profitMap[order.date] || 0) + orderProfit;
+                    profitMap[normDate] = (profitMap[normDate] || 0) + orderProfit;
                 }
+            });
+
+            // Khấu trừ hóa đơn nhập kho vào doanh thu và lợi nhuận của biểu đồ ngày
+            vouchers.forEach(v => {
+                const normDate = normalizeDateString(v.date);
+                revenueMap[normDate] = (revenueMap[normDate] || 0) - v.total;
+                profitMap[normDate] = (profitMap[normDate] || 0) - v.total;
             });
 
             let sortedDates = Object.keys(revenueMap).sort((a, b) => {
@@ -1324,6 +1367,7 @@ renderDashboard();
                     <td><strong>${p.title}</strong></td>
                     <td><span style="background:#f1f2f6; padding:4px 8px; border-radius:4px; font-size:0.8rem; color:#57606f;">${p.category}</span></td>
                     <td><strong>${new Intl.NumberFormat('vi-VN').format(p.price)} ₫</strong></td>
+                    <td><strong>${new Intl.NumberFormat('vi-VN').format(p.cost !== undefined ? p.cost : Math.floor(p.price * 0.6))} ₫</strong></td>
                     <td><strong>${p.stock !== undefined ? p.stock : 50}</strong></td>
                     <td>
                         <button class="btn-action btn-ship" onclick="openProductModal('${p.id}')" style="margin-right:4px;"><i class="fas fa-edit"></i> Sửa</button>
@@ -1376,6 +1420,7 @@ renderDashboard();
                 products = products.filter(p => p.id !== prodId);
                 localStorage.setItem('productsDatabase', JSON.stringify(products));
                 renderProductsTable();
+                renderDashboard();
             }
         }
         document.getElementById('product-form').addEventListener('submit', (e) => {
@@ -1437,6 +1482,7 @@ renderDashboard();
             localStorage.setItem('productsDatabase', JSON.stringify(products));
             closeProductModal();
             renderProductsTable();
+            renderDashboard();
         });
         function renderInventoryTable() {
             let products = JSON.parse(localStorage.getItem('productsDatabase')) || [];

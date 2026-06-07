@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
@@ -153,7 +153,7 @@
     <a href="index.html" class="back-home">&larr; Quay lại trang chủ</a>
   </div>
 
-      
+      <!-- Firebase Compat SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="js/main.js"></script>
@@ -231,8 +231,8 @@
               return;
           }
           
-          if(usersDB.find(u => u.email === email)) {
-              alert('Email này đã được đăng ký!');
+          if(usersDB.find(u => u.email.toLowerCase() === email.toLowerCase() || u.name.toLowerCase() === name.toLowerCase())) {
+              alert('Email hoặc Tên đăng nhập này đã được sử dụng!');
               return;
           }
           
@@ -249,7 +249,7 @@
         } else {
           const email = logEmail.value.trim();
           const pswd = logPass.value.trim();
-          if ((email === 'admin@thebeauty.vn' || email === 'admin') && pswd === 'admin') {
+          if ((email.toLowerCase() === 'admin@thebeauty.vn' || email.toLowerCase() === 'admin') && pswd === 'admin') {
               localStorage.setItem('isLoggedIn', 'true');
               localStorage.setItem('loggedInEmail', 'admin@thebeauty.vn');
               localStorage.setItem('isAdmin', 'true');
@@ -258,7 +258,7 @@
               return;
           }
           
-          const user = usersDB.find(u => u.email === email);
+          const user = usersDB.find(u => u.email.toLowerCase() === email.toLowerCase() || u.name.toLowerCase() === email.toLowerCase());
           if(!user || user.password !== pswd) {
               alert('Email hoặc mật khẩu không chính xác!');
               return;
@@ -266,7 +266,7 @@
           
           localStorage.setItem('isLoggedIn', 'true');
           localStorage.setItem('loggedInEmail', user.email);
-          localStorage.removeItem('isAdmin');
+          localStorage.removeItem('isAdmin'); // Ensure normal user doesn't carry admin privileges
           alert('Đăng nhập thành công!');
 
           const cart = JSON.parse(localStorage.getItem('cartInfo')) || [];
@@ -281,4 +281,3 @@
   </script>
 </body>
 </html>
-

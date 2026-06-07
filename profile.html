@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
@@ -376,7 +376,7 @@
       
       let usersDB = JSON.parse(localStorage.getItem('usersDatabase')) || [];
       let loggedInEmail = localStorage.getItem('loggedInEmail');
-      let currentUser = usersDB.find(u => u.email === loggedInEmail);
+      let currentUser = loggedInEmail ? usersDB.find(u => u.email.toLowerCase() === loggedInEmail.toLowerCase()) : null;
       
       if (localStorage.getItem('isAdmin') === 'true') {
         document.getElementById('user-name').textContent = 'Quản Trị Viên';
@@ -454,7 +454,7 @@
               const newName = infoNameInput.value.trim();
               if (currentUser && newName) {
                   currentUser.name = newName;
-                  const userIdx = usersDB.findIndex(u => u.email === loggedInEmail);
+                  const userIdx = loggedInEmail ? usersDB.findIndex(u => u.email.toLowerCase() === loggedInEmail.toLowerCase()) : -1;
                   if (userIdx > -1) {
                       usersDB[userIdx].name = newName;
                       localStorage.setItem('usersDatabase', JSON.stringify(usersDB));
