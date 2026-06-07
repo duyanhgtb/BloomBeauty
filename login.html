@@ -217,38 +217,65 @@
 
       loginForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        
-        let usersDB = JSON.parse(localStorage.getItem('usersDatabase')) || [];
 
         if (isRegisterMode) {
           const email = regEmail.value.trim();
           const pswd = regPass.value.trim();
           const name = regName.value.trim();
-          
+
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(email)) {
               alert('Email không hợp lệ! Vui lòng kiểm tra lại.');
               return;
           }
-          
-          if(usersDB.find(u => u.email.toLowerCase() === email.toLowerCase() || u.name.toLowerCase() === name.toLowerCase())) {
-              alert('Email hoặc Tên đăng nhập này đã được sử dụng!');
-              return;
-          }
-          
-          usersDB.push({
-              name: name,
-              email: email,
-              password: pswd,
-              createdAt: new Date().toISOString()
+
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Đang xử lý...';
+
+          db.collection('app_data').doc('users').get().then(doc => {
+              let usersDB = (doc.exists && doc.data().data) ? doc.data().data : (JSON.parse(localStorage.getItem('usersDatabase')) || []);
+
+              if (usersDB.find(u => u.email.toLowerCase() === email.toLowerCase() || u.name.toLowerCase() === name.toLowerCase())) {
+                  alert('Email hoặc Tên đăng nhập này đã được sử dụng!');
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = 'Tạo Tài Khoản';
+                  return;
+              }
+
+              usersDB.push({
+                  name: name,
+                  email: email,
+                  password: pswd,
+                  createdAt: new Date().toISOString()
+              });
+              window.syncDataToFirebase('usersDatabase', JSON.stringify(usersDB)).then(() => {
+                  alert('Hồ sơ của bạn đã được tạo!');
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = 'Tạo Tài Khoản';
+                  toLogBtn.click();
+              });
+          }).catch(err => {
+              console.error('Firestore error during register:', err);
+              let usersDB = JSON.parse(localStorage.getItem('usersDatabase')) || [];
+              if (usersDB.find(u => u.email.toLowerCase() === email.toLowerCase() || u.name.toLowerCase() === name.toLowerCase())) {
+                  alert('Email hoặc Tên đăng nhập này đã được sử dụng!');
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = 'Tạo Tài Khoản';
+                  return;
+              }
+              usersDB.push({ name, email, password: pswd, createdAt: new Date().toISOString() });
+              window.syncDataToFirebase('usersDatabase', JSON.stringify(usersDB)).then(() => {
+                  alert('Hồ sơ của bạn đã được tạo!');
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = 'Tạo Tài Khoản';
+                  toLogBtn.click();
+              });
           });
-          localStorage.setItem('usersDatabase', JSON.stringify(usersDB));
-          
-          alert('Hồ sơ của bạn đã được tạo!');
-          toLogBtn.click();
+
         } else {
           const email = logEmail.value.trim();
           const pswd = logPass.value.trim();
+
           if ((email.toLowerCase() === 'admin@thebeauty.vn' || email.toLowerCase() === 'admin') && pswd === 'admin') {
               localStorage.setItem('isLoggedIn', 'true');
               localStorage.setItem('loggedInEmail', 'admin@thebeauty.vn');
@@ -257,24 +284,45 @@
               window.location.href = 'admin.html';
               return;
           }
-          
-          const user = usersDB.find(u => u.email.toLowerCase() === email.toLowerCase() || u.name.toLowerCase() === email.toLowerCase());
-          if(!user || user.password !== pswd) {
-              alert('Email hoặc mật khẩu không chính xác!');
-              return;
-          }
-          
-          localStorage.setItem('isLoggedIn', 'true');
-          localStorage.setItem('loggedInEmail', user.email);
-          localStorage.removeItem('isAdmin'); // Ensure normal user doesn't carry admin privileges
-          alert('Đăng nhập thành công!');
 
-          const cart = JSON.parse(localStorage.getItem('cartInfo')) || [];
-          if (cart.length > 0) {
-              window.location.href = 'checkout.html';
-          } else {
-              window.location.href = 'index.html';
-          }
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Đang xác thực...';
+
+          db.collection('app_data').doc('users').get().then(doc => {
+              const usersDB = (doc.exists && doc.data().data) ? doc.data().data : (JSON.parse(localStorage.getItem('usersDatabase')) || []);
+
+              const user = usersDB.find(u => u.email.toLowerCase() === email.toLowerCase() || u.name.toLowerCase() === email.toLowerCase());
+              if (!user || user.password !== pswd) {
+                  alert('Email hoặc mật khẩu không chính xác!');
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = 'Đăng Nhập';
+                  return;
+              }
+
+              localStorage.setItem('isLoggedIn', 'true');
+              localStorage.setItem('loggedInEmail', user.email);
+              localStorage.removeItem('isAdmin');
+              alert('Đăng nhập thành công!');
+
+              const cart = JSON.parse(localStorage.getItem('cartInfo')) || [];
+              window.location.href = cart.length > 0 ? 'checkout.html' : 'index.html';
+          }).catch(err => {
+              console.error('Firestore error during login:', err);
+              const usersDB = JSON.parse(localStorage.getItem('usersDatabase')) || [];
+              const user = usersDB.find(u => u.email.toLowerCase() === email.toLowerCase() || u.name.toLowerCase() === email.toLowerCase());
+              if (!user || user.password !== pswd) {
+                  alert('Email hoặc mật khẩu không chính xác!');
+                  submitBtn.disabled = false;
+                  submitBtn.textContent = 'Đăng Nhập';
+                  return;
+              }
+              localStorage.setItem('isLoggedIn', 'true');
+              localStorage.setItem('loggedInEmail', user.email);
+              localStorage.removeItem('isAdmin');
+              alert('Đăng nhập thành công!');
+              const cart = JSON.parse(localStorage.getItem('cartInfo')) || [];
+              window.location.href = cart.length > 0 ? 'checkout.html' : 'index.html';
+          });
         }
       });
     });

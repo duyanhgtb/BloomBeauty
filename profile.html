@@ -462,13 +462,13 @@
                   const userIdx = loggedInEmail ? usersDB.findIndex(u => u.email.toLowerCase() === loggedInEmail.toLowerCase()) : -1;
                   if (userIdx > -1) {
                       usersDB[userIdx].name = newName;
-                      localStorage.setItem('usersDatabase', JSON.stringify(usersDB));
+                      window.syncDataToFirebase('usersDatabase', JSON.stringify(usersDB)).then(() => {
+                          document.getElementById('user-name').textContent = newName;
+                          document.getElementById('user-avatar').textContent = newName.charAt(0).toUpperCase();
+                          if (window.authManager) window.authManager.updateUI();
+                          alert('Cập nhật thông tin cá nhân thành công!');
+                      });
                   }
-                  document.getElementById('user-name').textContent = newName;
-                  document.getElementById('user-avatar').textContent = newName.charAt(0).toUpperCase();
-                  if (window.authManager) window.authManager.updateUI();
-                  
-                  alert('Cập nhật thông tin cá nhân thành công!');
               }
           });
       }
